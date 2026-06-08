@@ -161,6 +161,17 @@ export default function Contact() {
                     <div className="text-sm text-navy-400">Remote-first collaboration</div>
                   </div>
                 </div>
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-accent-blue/10">
+                    <MapPin className="w-5 h-5 text-accent-blue" />
+                  </div>
+                  <div>
+                    <div className="text-sm text-navy-400 mb-1">Phone</div>
+                    <a href="tel:+923084328928" className="text-white hover:text-accent-cyan transition-colors">
+                      +92 308 4328928
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
 

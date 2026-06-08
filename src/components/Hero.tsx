@@ -33,7 +33,14 @@ export default function Hero() {
           <br />
           <span className="gradient-text">Through Data & Strategy</span>
         </h1>
-
+{/* Profile Photo */}
+<div className="mb-6 opacity-0 animate-slide-up animate-delay-150">
+  <img 
+    src="https://github.com/usamash07/UsamaGrowthLab/blob/main/public/profile.jpg?raw=true" 
+    alt="Usama Ahmed" 
+    className="w-32 h-32 rounded-full mx-auto border-4 border-accent-cyan/30 shadow-2xl object-cover"
+  />
+</div>
         {/* Value proposition */}
         <p className="text-xl md:text-2xl text-navy-300 max-w-3xl mx-auto mb-4 opacity-0 animate-slide-up animate-delay-200">
           I'm <span className="text-white font-semibold">Usama Ahmed</span>

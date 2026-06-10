@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Mail, MapPin, Linkedin, Twitter, Instagram, Github, ArrowRight, CheckCircle } from 'lucide-react';
+import { Send, Mail, MapPin, Linkedin, Twitter, Instagram, Github, ArrowRight, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 const socials = [
   { name: 'LinkedIn', icon: Linkedin, href: '#', color: 'hover:text-blue-400' },
@@ -8,12 +8,41 @@ const socials = [
   { name: 'GitHub', icon: Github, href: '#', color: 'hover:text-purple-400' },
 ];
 
-export default function Contact() {
-  const [submitted, setSubmitted] = useState(false);
+type FormStatus = 'idle' | 'submitting' | 'success' | 'error';
 
-  const handleSubmit = (e: React.FormEvent) => {
+export default function Contact() {
+  const [status, setStatus] = useState<FormStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setSubmitted(true);
+    setStatus('submitting');
+    setErrorMessage('');
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setStatus('success');
+        form.reset();
+      } else {
+        setErrorMessage(result.message || 'Submission failed. Please try again.');
+        setStatus('error');
+      }
+    } catch {
+      setErrorMessage('Something went wrong. Please check your connection and try again.');
+      setStatus('error');
+    }
   };
 
   return (
@@ -41,7 +70,7 @@ export default function Contact() {
         <div className="grid lg:grid-cols-5 gap-12 lg:gap-16">
           {/* Contact Form */}
           <div className="lg:col-span-3">
-            {submitted ? (
+            {status === 'success' ? (
               <div className="glass-card p-12 text-center animate-scale-in">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent-cyan to-accent-blue flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-10 h-10 text-navy-950" />
@@ -51,7 +80,7 @@ export default function Contact() {
                   Thanks for reaching out. I'll get back to you within 24-48 hours.
                 </p>
                 <button
-                  onClick={() => setSubmitted(false)}
+                  onClick={() => setStatus('idle')}
                   className="outline-button"
                 >
                   Send Another Message
@@ -59,6 +88,18 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="glass-card p-8 space-y-6">
+                {/* Hidden Web3Forms access key */}
+                <input type="hidden" name="access_key" value="YOUR_ACCESS_KEY_HERE" />
+                {/* Honeypot spam filter */}
+                <input type="checkbox" name="botcheck" className="hidden" style={{ display: 'none' }} />
+
+                {status === 'error' && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30 animate-scale-in">
+                    <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                    <p className="text-sm text-red-300">{errorMessage}</p>
+                  </div>
+                )}
+
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-navy-200 mb-2">
@@ -69,7 +110,8 @@ export default function Contact() {
                       id="name"
                       name="name"
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-navy-400 focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all"
+                      disabled={status === 'submitting'}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-navy-400 focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all disabled:opacity-50"
                       placeholder="John Doe"
                     />
                   </div>
@@ -82,7 +124,8 @@ export default function Contact() {
                       id="email"
                       name="email"
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-navy-400 focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all"
+                      disabled={status === 'submitting'}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-navy-400 focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all disabled:opacity-50"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -90,19 +133,19 @@ export default function Contact() {
 
                 <div>
                   <label htmlFor="service" className="block text-sm font-medium text-navy-200 mb-2">
-                    Service Interested In
+                    Service Type
                   </label>
                   <select
                     id="service"
                     name="service"
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all appearance-none cursor-pointer"
+                    required
+                    disabled={status === 'submitting'}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <option value="" className="bg-navy-900">Select a service</option>
-                    <option value="seo" className="bg-navy-900">SEO Optimization</option>
-                    <option value="ads" className="bg-navy-900">Meta/Google Ads</option>
-                    <option value="content" className="bg-navy-900">Content Marketing</option>
-                    <option value="strategy" className="bg-navy-900">Full Marketing Strategy</option>
-                    <option value="other" className="bg-navy-900">Other</option>
+                    <option value="Grooming" className="bg-navy-900">Grooming</option>
+                    <option value="Medical Consultation" className="bg-navy-900">Medical Consultation</option>
+                    <option value="Other" className="bg-navy-900">Other</option>
                   </select>
                 </div>
 
@@ -115,15 +158,29 @@ export default function Contact() {
                     name="message"
                     rows={5}
                     required
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-navy-400 focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all resize-none"
+                    disabled={status === 'submitting'}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-navy-400 focus:border-accent-cyan/50 focus:ring-1 focus:ring-accent-cyan/50 transition-all resize-none disabled:opacity-50"
                     placeholder="Tell me about your project and goals..."
                   />
                 </div>
 
-                <button type="submit" className="w-full glow-button font-display flex items-center justify-center gap-2">
+                <button
+                  type="submit"
+                  disabled={status === 'submitting'}
+                  className="w-full glow-button font-display flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
                   <span className="relative z-10 flex items-center gap-2">
-                    Send Message
-                    <Send className="w-5 h-5" />
+                    {status === 'submitting' ? (
+                      <>
+                        Sending...
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      </>
+                    ) : (
+                      <>
+                        Send Message
+                        <Send className="w-5 h-5" />
+                      </>
+                    )}
                   </span>
                 </button>
               </form>
